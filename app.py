@@ -208,8 +208,8 @@ if not alerts.empty:
         return "color: #00e5ff"
 
     styled = display_alerts.style \
-        .applymap(color_severity, subset=["severity"]) \
-        .applymap(color_score, subset=["fraud_score"])
+        .map(color_severity, subset=["severity"]) \
+        .map(color_score, subset=["fraud_score"])
 
     st.dataframe(styled, use_container_width=True, hide_index=True)
 else:
