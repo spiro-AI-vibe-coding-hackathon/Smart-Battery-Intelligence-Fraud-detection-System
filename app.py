@@ -560,8 +560,18 @@ with st.sidebar:
 
     st.markdown('<div class="sidebar-section-label">◈ Battery Drill-Down</div>', unsafe_allow_html=True)
     all_batteries = sorted(df["battery_id"].unique().tolist())
-    drill_battery = st.selectbox("Select Battery", ["None"] + all_batteries, index=0)
-    st.session_state.selected_battery = drill_battery if drill_battery != "None" else None
+    # Preserve current selection across reruns
+    current = st.session_state.selected_battery
+    options = ["None"] + all_batteries
+    # If close was clicked, force back to None/index 0
+    if st.session_state.pop("_drill_reset", False):
+        current = None
+    default_idx = options.index(current) if current in options else 0
+    drill_battery = st.selectbox("Select Battery", options, index=default_idx)
+    if drill_battery != "None":
+        st.session_state.selected_battery = drill_battery
+    else:
+        st.session_state.selected_battery = None
 
     st.markdown(f"""
     <div style="position:absolute; bottom:20px; left:16px; right:16px;">
@@ -688,7 +698,7 @@ if st.session_state.selected_battery:
             x=bat_df["timestamp"], y=bat_df["soc"],
             mode="lines+markers",
             line=dict(color="#00e5ff", width=2),
-            marker=dict(size=6, color="#00e5ff", line=dict(color="#00e5ff88", width=2)),
+            marker=dict(size=6, color="#00e5ff", line=dict(color="rgba(0,229,255,0.53)", width=2)),
             fill="tozeroy",
             fillcolor="rgba(0,229,255,0.05)",
             name="SoC %"
@@ -775,6 +785,7 @@ if st.session_state.selected_battery:
     with col_close:
         if st.button("✕  Close", use_container_width=True):
             st.session_state.selected_battery = None
+            st.session_state["_drill_reset"] = True
             st.rerun()
 
     st.divider()
